@@ -165,7 +165,7 @@ class RichMenuClient
     public function setRichMenuImage(string $richMenuId, string $fileId): SetImageResponse
     {
         $botId = $this->client->getBotId();
-        $richMenuImageEndpoint = "bots/{$botId}/richmenus/{$richMenuId}/content";
+        $richMenuImageEndpoint = "bots/{$botId}/richmenus/{$richMenuId}/image";
         
         $this->client->post($richMenuImageEndpoint, [
             'fileId' => $fileId
@@ -184,7 +184,7 @@ class RichMenuClient
     public function getImage(string $richMenuId): GetImageResponse
     {
         $botId = $this->client->getBotId();
-        $endpoint = "bots/{$botId}/richmenus/{$richMenuId}/content";
+        $endpoint = "bots/{$botId}/richmenus/{$richMenuId}/image";
 
         // 画像取得はバイナリデータを返すため、特別な処理が必要
         $response = $this->client->get($endpoint, [], ['Accept' => 'image/*']);
@@ -243,11 +243,9 @@ class RichMenuClient
     public function setDefault(string $richMenuId): DefaultMenuResponse
     {
         $botId = $this->client->getBotId();
-        $endpoint = "bots/{$botId}/richmenus/default";
+        $endpoint = "bots/{$botId}/richmenus/{$richMenuId}/set-default";
 
-        $this->client->post($endpoint, [
-            'richMenuId' => $richMenuId,
-        ]);
+        $this->client->post($endpoint);
 
         return new DefaultMenuResponse(['success' => true]);
     }
