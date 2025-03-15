@@ -5,7 +5,7 @@ namespace Tests\Unit\Bot;
 use Mockery;
 use PHPUnit\Framework\TestCase;
 use Sumihiro\LineWorksClient\Bot\Message\MessageClient;
-use Sumihiro\LineWorksClient\DTO\Bot\MessageResponse;
+use Sumihiro\LineWorksClient\DTO\Bot\Message\MessageResponse;
 use Sumihiro\LineWorksClient\LineWorksClient;
 
 class MessageTest extends TestCase

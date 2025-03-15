@@ -156,7 +156,14 @@ function listRichMenus()
     
     $response = $botClient->richMenu()->list();
     
-    displayResult('リッチメニュー一覧', $response);
+    if ($response->hasRichMenus()) {
+        displayResult('リッチメニュー一覧', [
+            'richmenus' => $response->getRichMenus(),
+            'responseMetaData' => ['nextCursor' => $response->getNextCursor()],
+        ]);
+    } else {
+        echo "リッチメニューが存在しません。\n";
+    }
 }
 
 /**
@@ -178,7 +185,22 @@ function getRichMenu()
     
     $response = $botClient->richMenu()->get($richMenuId);
     
-    displayResult('リッチメニュー詳細', $response);
+    $result = [
+        'richmenuId' => $response->getRichMenuId(),
+        'size' => $response->getSize(),
+        'richmenuName' => $response->getName(),
+        'areas' => $response->getAreas(),
+    ];
+    
+    if ($response->getChatBarText()) {
+        $result['chatBarText'] = $response->getChatBarText();
+    }
+    
+    if ($response->isSelected() !== null) {
+        $result['selected'] = $response->isSelected();
+    }
+    
+    displayResult('リッチメニュー詳細', $result);
 }
 
 /**
@@ -199,7 +221,7 @@ function createRichMenu()
             'height' => 1686,
         ],
         'selected' => false,
-        'name' => $name,
+        'richmenuName' => $name,
         'chatBarText' => 'メニュー',
         'areas' => [
             [
@@ -231,10 +253,14 @@ function createRichMenu()
     
     $response = $botClient->richMenu()->create($richMenuData);
     
-    displayResult('リッチメニュー作成結果', [
-        'richMenuId' => $response->getRichMenuId(),
-        'name' => $name,
-    ]);
+    if ($response->isSuccess()) {
+        displayResult('リッチメニュー作成結果', [
+            'richMenuId' => $response->getRichMenuId(),
+            'name' => $name,
+        ]);
+    } else {
+        echo "リッチメニューの作成に失敗しました。\n";
+    }
 }
 
 /**
@@ -261,11 +287,15 @@ function uploadRichMenuImage()
     echo "リッチメニューID: {$richMenuId} に画像をアップロードします...\n";
     echo "画像パス: {$imagePath}\n";
     
-    $result = $botClient->richMenu()->uploadImage($richMenuId, $imagePath);
+    $response = $botClient->richMenu()->uploadImage($richMenuId, $imagePath);
     
-    displayResult('リッチメニュー画像アップロード結果', [
-        'success' => $result,
-    ]);
+    if ($response->isSuccess()) {
+        displayResult('リッチメニュー画像アップロード結果', [
+            'success' => true,
+        ]);
+    } else {
+        echo "リッチメニュー画像のアップロードに失敗しました。\n";
+    }
 }
 
 /**
@@ -292,11 +322,15 @@ function setRichMenuForUser()
     
     echo "アカウントID: {$accountId} にリッチメニューID: {$richMenuId} を設定します...\n";
     
-    $result = $botClient->richMenu()->setForUser($accountId, $richMenuId);
+    $response = $botClient->richMenu()->setForUser($accountId, $richMenuId);
     
-    displayResult('ユーザーへのリッチメニュー設定結果', [
-        'success' => $result,
-    ]);
+    if ($response->isSuccess()) {
+        displayResult('ユーザーへのリッチメニュー設定結果', [
+            'success' => true,
+        ]);
+    } else {
+        echo "ユーザーへのリッチメニュー設定に失敗しました。\n";
+    }
 }
 
 /**
@@ -318,7 +352,13 @@ function getRichMenuForUser()
     
     $response = $botClient->richMenu()->getForUser($accountId);
     
-    displayResult('ユーザーのリッチメニュー', $response);
+    if ($response->getRichMenuId()) {
+        displayResult('ユーザーのリッチメニュー', [
+            'richMenuId' => $response->getRichMenuId(),
+        ]);
+    } else {
+        echo "ユーザーにリッチメニューが設定されていません。\n";
+    }
 }
 
 /**
@@ -338,11 +378,15 @@ function deleteRichMenuForUser()
     
     echo "アカウントID: {$accountId} のリッチメニューを削除します...\n";
     
-    $result = $botClient->richMenu()->deleteForUser($accountId);
+    $response = $botClient->richMenu()->deleteForUser($accountId);
     
-    displayResult('ユーザーのリッチメニュー削除結果', [
-        'success' => $result,
-    ]);
+    if ($response->isSuccess()) {
+        displayResult('ユーザーのリッチメニュー削除結果', [
+            'success' => true,
+        ]);
+    } else {
+        echo "ユーザーのリッチメニュー削除に失敗しました。\n";
+    }
 }
 
 /**
@@ -362,11 +406,15 @@ function setDefaultRichMenu()
     
     echo "リッチメニューID: {$richMenuId} をデフォルトリッチメニューとして設定します...\n";
     
-    $result = $botClient->richMenu()->setDefault($richMenuId);
+    $response = $botClient->richMenu()->setDefault($richMenuId);
     
-    displayResult('デフォルトリッチメニュー設定結果', [
-        'success' => $result,
-    ]);
+    if ($response->isSuccess()) {
+        displayResult('デフォルトリッチメニュー設定結果', [
+            'success' => true,
+        ]);
+    } else {
+        echo "デフォルトリッチメニューの設定に失敗しました。\n";
+    }
 }
 
 /**
@@ -380,7 +428,13 @@ function getDefaultRichMenu()
     
     $response = $botClient->richMenu()->getDefault();
     
-    displayResult('デフォルトリッチメニュー', $response);
+    if ($response->getRichMenuId()) {
+        displayResult('デフォルトリッチメニュー', [
+            'richMenuId' => $response->getRichMenuId(),
+        ]);
+    } else {
+        echo "デフォルトリッチメニューが設定されていません。\n";
+    }
 }
 
 /**
@@ -392,11 +446,15 @@ function deleteDefaultRichMenu()
     
     echo "デフォルトリッチメニューを削除します...\n";
     
-    $result = $botClient->richMenu()->deleteDefault();
+    $response = $botClient->richMenu()->deleteDefault();
     
-    displayResult('デフォルトリッチメニュー削除結果', [
-        'success' => $result,
-    ]);
+    if ($response->isSuccess()) {
+        displayResult('デフォルトリッチメニュー削除結果', [
+            'success' => true,
+        ]);
+    } else {
+        echo "デフォルトリッチメニューの削除に失敗しました。\n";
+    }
 }
 
 /**
@@ -416,9 +474,13 @@ function deleteRichMenu()
     
     echo "リッチメニューID: {$richMenuId} を削除します...\n";
     
-    $result = $botClient->richMenu()->delete($richMenuId);
+    $response = $botClient->richMenu()->delete($richMenuId);
     
-    displayResult('リッチメニュー削除結果', [
-        'success' => $result,
-    ]);
+    if ($response->isSuccess()) {
+        displayResult('リッチメニュー削除結果', [
+            'success' => true,
+        ]);
+    } else {
+        echo "リッチメニューの削除に失敗しました。\n";
+    }
 } 

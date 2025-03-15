@@ -2,6 +2,7 @@
 
 namespace Sumihiro\LineWorksClient\Bot;
 
+use Sumihiro\LineWorksClient\Bot\Attachment\AttachmentClient;
 use Sumihiro\LineWorksClient\Bot\Channel\ChannelClient;
 use Sumihiro\LineWorksClient\Bot\Management\BotManagementClient;
 use Sumihiro\LineWorksClient\Bot\Message\MessageClient;
@@ -44,6 +45,13 @@ class BotClient
      * @var \Sumihiro\LineWorksClient\Bot\Management\BotManagementClient|null
      */
     protected ?BotManagementClient $botManagementClient = null;
+
+    /**
+     * The attachment client instance.
+     *
+     * @var \Sumihiro\LineWorksClient\Bot\Attachment\AttachmentClient|null
+     */
+    protected ?AttachmentClient $attachmentClient = null;
 
     /**
      * Create a new bot client instance.
@@ -96,6 +104,20 @@ class BotClient
         }
 
         return $this->richMenuClient;
+    }
+
+    /**
+     * Get the attachment client instance.
+     *
+     * @return \Sumihiro\LineWorksClient\Bot\Attachment\AttachmentClient
+     */
+    public function attachment(): AttachmentClient
+    {
+        if ($this->attachmentClient === null) {
+            $this->attachmentClient = new AttachmentClient($this->client);
+        }
+
+        return $this->attachmentClient;
     }
 
     /**

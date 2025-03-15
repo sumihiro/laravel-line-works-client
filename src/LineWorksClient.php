@@ -153,6 +153,26 @@ class LineWorksClient
     }
 
     /**
+     * Get an upload client instance.
+     *
+     * @return \Sumihiro\LineWorksClient\Upload\UploadClient
+     */
+    public function upload(): \Sumihiro\LineWorksClient\Upload\UploadClient
+    {
+        return new \Sumihiro\LineWorksClient\Upload\UploadClient($this);
+    }
+
+    /**
+     * Get a bot client instance.
+     *
+     * @return \Sumihiro\LineWorksClient\Bot\BotClient
+     */
+    public function bot(): \Sumihiro\LineWorksClient\Bot\BotClient
+    {
+        return new \Sumihiro\LineWorksClient\Bot\BotClient($this);
+    }
+
+    /**
      * Send a GET request to the LINE WORKS API.
      *
      * @param string $endpoint
@@ -278,8 +298,15 @@ class LineWorksClient
             $body = (string) $response->getBody();
             $statusCode = $response->getStatusCode();
 
-            // Parse the response body
-            $responseData = json_decode($body, true) ?? [];
+            // Try to parse the response body as JSON
+            $responseData = [];
+            if (!empty($body)) {
+                $responseData = json_decode($body, true);
+                // If JSON parsing failed, return the raw body
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    $responseData = ['raw_response' => $body];
+                }
+            }
 
             // Log the response if logging is enabled
             $this->logDebug('Received response from LINE WORKS API', [
@@ -455,5 +482,113 @@ class LineWorksClient
     protected function getLogLevel(): string
     {
         return $this->globalConfig['logging']['level'] ?? 'debug';
+    }
+
+    /**
+     * Send a request to an external URL.
+     *
+     * @param string $method
+     * @param string $url
+     * @param array<string, mixed> $options
+     * @return array<string, mixed>|string
+     * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
+     */
+    public function requestExternal(string $method, string $url, array $options = []): array|string
+    {
+        try {
+            // Get the access token
+            $accessToken = $this->accessTokenManager->getToken();
+
+            // Add the authorization header if not already set
+            if (!isset($options['headers']['Authorization'])) {
+                $options['headers'] = array_merge(
+                    $options['headers'] ?? [],
+                    [
+                        'Authorization' => 'Bearer ' . $accessToken,
+                    ]
+                );
+            }
+
+            // Log the request if logging is enabled
+            $this->logDebug('Sending request to external URL', [
+                'method' => $method,
+                'url' => $url,
+                'options' => $this->sanitizeOptions($options),
+            ]);
+
+            // Create a new Guzzle client for the external URL (without base_uri)
+            $externalClient = new Client([
+                'http_errors' => false,
+            ]);
+
+            // Send the request
+            $response = $externalClient->request($method, $url, $options);
+
+            // Get the response body
+            $body = (string) $response->getBody();
+            $statusCode = $response->getStatusCode();
+
+            // Try to parse the response body as JSON
+            $responseData = [];
+            if (!empty($body)) {
+                $responseData = json_decode($body, true);
+                // If JSON parsing failed, return the raw body
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    $responseData = ['raw_response' => $body];
+                }
+            }
+
+            // Log the response if logging is enabled
+            $this->logDebug('Received response from external URL', [
+                'status_code' => $statusCode,
+                'response' => $responseData,
+            ]);
+
+            // Check if the request was successful
+            if ($statusCode < 200 || $statusCode >= 300) {
+                throw new ApiException(
+                    'External request failed: HTTP ' . $statusCode,
+                    0,
+                    $responseData,
+                    $statusCode
+                );
+            }
+
+            return $responseData ?: $body;
+        } catch (GuzzleException $e) {
+            // Handle Guzzle exceptions
+            $statusCode = $e->getCode();
+            $message = $e->getMessage();
+
+            // Try to parse the response body if available
+            $responseData = null;
+            
+            try {
+                if ($e instanceof \GuzzleHttp\Exception\RequestException && $e->hasResponse()) {
+                    $response = $e->getResponse();
+                    $responseBody = (string) $response->getBody();
+                    $responseData = json_decode($responseBody, true);
+                    $statusCode = $response->getStatusCode();
+                }
+            } catch (\Exception $innerException) {
+                // Ignore inner exceptions
+            }
+
+            // Log the error if logging is enabled
+            $this->logError('External request failed', [
+                'url' => $url,
+                'message' => $message,
+                'status_code' => $statusCode,
+                'response_data' => $responseData,
+            ]);
+
+            throw new ApiException(
+                'External request failed: ' . $message,
+                0,
+                $responseData,
+                $statusCode,
+                $e
+            );
+        }
     }
 } 
