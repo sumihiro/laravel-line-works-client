@@ -2,9 +2,10 @@
 
 namespace Sumihiro\LineWorksClient\Bot;
 
-use Sumihiro\LineWorksClient\DTO\Bot\MessageResponse;
-use Sumihiro\LineWorksClient\DTO\Bot\RichMenuResponse;
-use Sumihiro\LineWorksClient\Exceptions\ApiException;
+use Sumihiro\LineWorksClient\Bot\Channel\ChannelClient;
+use Sumihiro\LineWorksClient\Bot\Management\BotManagementClient;
+use Sumihiro\LineWorksClient\Bot\Message\MessageClient;
+use Sumihiro\LineWorksClient\Bot\RichMenu\RichMenuClient;
 use Sumihiro\LineWorksClient\LineWorksClient;
 
 class BotClient
@@ -15,6 +16,34 @@ class BotClient
      * @var \Sumihiro\LineWorksClient\LineWorksClient
      */
     protected LineWorksClient $client;
+
+    /**
+     * The channel client instance.
+     *
+     * @var \Sumihiro\LineWorksClient\Bot\Channel\ChannelClient|null
+     */
+    protected ?ChannelClient $channelClient = null;
+
+    /**
+     * The message client instance.
+     *
+     * @var \Sumihiro\LineWorksClient\Bot\Message\MessageClient|null
+     */
+    protected ?MessageClient $messageClient = null;
+
+    /**
+     * The rich menu client instance.
+     *
+     * @var \Sumihiro\LineWorksClient\Bot\RichMenu\RichMenuClient|null
+     */
+    protected ?RichMenuClient $richMenuClient = null;
+
+    /**
+     * The bot management client instance.
+     *
+     * @var \Sumihiro\LineWorksClient\Bot\Management\BotManagementClient|null
+     */
+    protected ?BotManagementClient $botManagementClient = null;
 
     /**
      * Create a new bot client instance.
@@ -28,207 +57,59 @@ class BotClient
     }
 
     /**
-     * Send a text message.
+     * Get the channel client instance.
      *
-     * @param string $accountId
-     * @param string $content
-     * @return \Sumihiro\LineWorksClient\DTO\Bot\MessageResponse
-     * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
+     * @return \Sumihiro\LineWorksClient\Bot\Channel\ChannelClient
      */
-    public function sendText(string $accountId, string $content): MessageResponse
+    public function channel(): ChannelClient
     {
-        return $this->sendMessage($accountId, [
-            'content' => [
-                'type' => 'text',
-                'text' => $content,
-            ],
-        ]);
+        if ($this->channelClient === null) {
+            $this->channelClient = new ChannelClient($this->client);
+        }
+
+        return $this->channelClient;
     }
 
     /**
-     * Send a message.
+     * Get the message client instance.
      *
-     * @param string $accountId
-     * @param array<string, mixed> $message
-     * @return \Sumihiro\LineWorksClient\DTO\Bot\MessageResponse
-     * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
+     * @return \Sumihiro\LineWorksClient\Bot\Message\MessageClient
      */
-    public function sendMessage(string $accountId, array $message): MessageResponse
+    public function message(): MessageClient
     {
-        $botId = $this->client->getBotId();
-        $domainId = $this->client->getDomainId();
+        if ($this->messageClient === null) {
+            $this->messageClient = new MessageClient($this->client);
+        }
 
-        $endpoint = "bots/{$botId}/users/{$accountId}/messages";
-        $data = array_merge($message, [
-            'botId' => $botId,
-            'accountId' => $accountId,
-            'domainId' => $domainId,
-        ]);
-
-        $response = $this->client->post($endpoint, $data);
-
-        return new MessageResponse($response);
+        return $this->messageClient;
     }
 
     /**
-     * Send a message to a channel.
+     * Get the rich menu client instance.
      *
-     * @param string $channelId
-     * @param array<string, mixed> $message
-     * @return \Sumihiro\LineWorksClient\DTO\Bot\MessageResponse
-     * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
+     * @return \Sumihiro\LineWorksClient\Bot\RichMenu\RichMenuClient
      */
-    public function sendMessageToChannel(string $channelId, array $message): MessageResponse
+    public function richMenu(): RichMenuClient
     {
-        $botId = $this->client->getBotId();
-        $domainId = $this->client->getDomainId();
+        if ($this->richMenuClient === null) {
+            $this->richMenuClient = new RichMenuClient($this->client);
+        }
 
-        $endpoint = "bots/{$botId}/channels/{$channelId}/messages";
-        $data = array_merge($message, [
-            'botId' => $botId,
-            'channelId' => $channelId,
-            'domainId' => $domainId,
-        ]);
-
-        $response = $this->client->post($endpoint, $data);
-
-        return new MessageResponse($response);
+        return $this->richMenuClient;
     }
 
     /**
-     * Get the rich menu list.
+     * Get the bot management client instance.
      *
-     * @return \Sumihiro\LineWorksClient\DTO\Bot\RichMenuResponse
-     * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
+     * @return \Sumihiro\LineWorksClient\Bot\Management\BotManagementClient
      */
-    public function getRichMenuList(): RichMenuResponse
+    public function management(): BotManagementClient
     {
-        $botId = $this->client->getBotId();
-        $endpoint = "bots/{$botId}/richmenu";
+        if ($this->botManagementClient === null) {
+            $this->botManagementClient = new BotManagementClient($this->client);
+        }
 
-        $response = $this->client->get($endpoint);
-
-        return new RichMenuResponse($response);
-    }
-
-    /**
-     * Create a rich menu.
-     *
-     * @param array<string, mixed> $richMenu
-     * @return \Sumihiro\LineWorksClient\DTO\Bot\RichMenuResponse
-     * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
-     */
-    public function createRichMenu(array $richMenu): RichMenuResponse
-    {
-        $botId = $this->client->getBotId();
-        $endpoint = "bots/{$botId}/richmenu";
-
-        $response = $this->client->post($endpoint, $richMenu);
-
-        return new RichMenuResponse($response);
-    }
-
-    /**
-     * Delete a rich menu.
-     *
-     * @param string $richMenuId
-     * @return bool
-     * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
-     */
-    public function deleteRichMenu(string $richMenuId): bool
-    {
-        $botId = $this->client->getBotId();
-        $endpoint = "bots/{$botId}/richmenu/{$richMenuId}";
-
-        $this->client->delete($endpoint);
-
-        return true;
-    }
-
-    /**
-     * Set a rich menu for a user.
-     *
-     * @param string $accountId
-     * @param string $richMenuId
-     * @return bool
-     * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
-     */
-    public function setRichMenuForUser(string $accountId, string $richMenuId): bool
-    {
-        $botId = $this->client->getBotId();
-        $endpoint = "bots/{$botId}/users/{$accountId}/richmenu";
-
-        $this->client->post($endpoint, [
-            'richMenuId' => $richMenuId,
-        ]);
-
-        return true;
-    }
-
-    /**
-     * Get the rich menu for a user.
-     *
-     * @param string $accountId
-     * @return \Sumihiro\LineWorksClient\DTO\Bot\RichMenuResponse
-     * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
-     */
-    public function getRichMenuForUser(string $accountId): RichMenuResponse
-    {
-        $botId = $this->client->getBotId();
-        $endpoint = "bots/{$botId}/users/{$accountId}/richmenu";
-
-        $response = $this->client->get($endpoint);
-
-        return new RichMenuResponse($response);
-    }
-
-    /**
-     * Delete the rich menu for a user.
-     *
-     * @param string $accountId
-     * @return bool
-     * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
-     */
-    public function deleteRichMenuForUser(string $accountId): bool
-    {
-        $botId = $this->client->getBotId();
-        $endpoint = "bots/{$botId}/users/{$accountId}/richmenu";
-
-        $this->client->delete($endpoint);
-
-        return true;
-    }
-
-    /**
-     * Upload a rich menu image.
-     *
-     * @param string $richMenuId
-     * @param string $imagePath
-     * @return bool
-     * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
-     */
-    public function uploadRichMenuImage(string $richMenuId, string $imagePath): bool
-    {
-        $botId = $this->client->getBotId();
-        $endpoint = "bots/{$botId}/richmenu/{$richMenuId}/content";
-
-        // TODO: Implement file upload
-
-        return true;
-    }
-
-    /**
-     * Get the bot information.
-     *
-     * @return array<string, mixed>
-     * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
-     */
-    public function getBotInfo(): array
-    {
-        $botId = $this->client->getBotId();
-        $endpoint = "bots/{$botId}";
-
-        return $this->client->get($endpoint);
+        return $this->botManagementClient;
     }
 
     /**

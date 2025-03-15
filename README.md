@@ -57,10 +57,10 @@ LINEWORKS_BOT_SECRET=your-bot-secret
 use Sumihiro\LineWorksClient\Facades\LineWorks;
 
 // デフォルトのボットを使用
-$response = LineWorks::botClient()->sendText('user123', 'こんにちは！');
+$response = LineWorks::botClient()->message()->sendText('user123', 'こんにちは！');
 
 // 特定のボットを指定
-$response = LineWorks::botClient('another_bot')->sendText('user123', 'こんにちは！');
+$response = LineWorks::botClient('another_bot')->message()->sendText('user123', 'こんにちは！');
 
 // スコープを指定してAPIを呼び出す
 $response = LineWorks::withScope('user')->get('users/info');
@@ -82,7 +82,7 @@ class MyController
 
     public function sendMessage()
     {
-        $response = $this->lineWorks->botClient()->sendText('user123', 'こんにちは！');
+        $response = $this->lineWorks->botClient()->message()->sendText('user123', 'こんにちは！');
         
         if ($response->isSuccess()) {
             return 'メッセージを送信しました！ ID: ' . $response->getMessageId();
@@ -145,7 +145,7 @@ $client = new LineWorksClient('default', $botConfig, $globalConfig);
 
 // BotClientを使用する場合
 $botClient = new BotClient($client);
-$messageResponse = $botClient->sendText('user123', 'こんにちは！');
+$messageResponse = $botClient->message()->sendText('user123', 'こんにちは！');
 
 if ($messageResponse->isSuccess()) {
     echo 'メッセージを送信しました！ ID: ' . $messageResponse->getMessageId();
@@ -240,6 +240,131 @@ $adminResponse = $client->get('admin/users');
 ],
 ```
 
+## Bot APIの使用例
+
+### メッセージ送信
+
+```php
+use Sumihiro\LineWorksClient\Facades\LineWorks;
+
+// テキストメッセージの送信
+$response = LineWorks::botClient()->message()->sendText('user123', 'こんにちは！');
+
+// 一般的なメッセージの送信
+$response = LineWorks::botClient()->message()->sendMessage('user123', [
+    'content' => [
+        'type' => 'text',
+        'text' => 'こんにちは！',
+    ],
+]);
+
+// チャンネルへのメッセージ送信
+$response = LineWorks::botClient()->channel()->sendMessage('channel123', [
+    'content' => [
+        'type' => 'text',
+        'text' => 'チャンネルのみなさん、こんにちは！',
+    ],
+]);
+```
+
+### トークルーム（チャンネル）関連
+
+```php
+use Sumihiro\LineWorksClient\Facades\LineWorks;
+
+// トークルームの作成
+$response = LineWorks::botClient()->channel()->create(
+    ['user1@example.com', 'user2@example.com'],
+    'プロジェクトA チーム'
+);
+$channelId = $response->getChannelId();
+
+// トークルーム情報の取得
+$channelInfo = LineWorks::botClient()->channel()->info($channelId);
+echo 'チャンネル名: ' . $channelInfo->getName();
+
+// トークルームのメンバーリスト取得
+$members = LineWorks::botClient()->channel()->members($channelId);
+foreach ($members->getMembers() as $member) {
+    echo 'メンバー: ' . $member['accountId'];
+}
+
+// トークルームからの退室
+$result = LineWorks::botClient()->channel()->leave($channelId);
+if ($result) {
+    echo 'チャンネルから退室しました';
+}
+```
+
+### リッチメニュー関連
+
+```php
+use Sumihiro\LineWorksClient\Facades\LineWorks;
+
+// リッチメニューの作成
+$richMenu = [
+    'name' => 'マイリッチメニュー',
+    'size' => [
+        'width' => 2500,
+        'height' => 1686,
+    ],
+    'areas' => [
+        [
+            'bounds' => [
+                'x' => 0,
+                'y' => 0,
+                'width' => 1250,
+                'height' => 1686,
+            ],
+            'action' => [
+                'type' => 'message',
+                'text' => 'アクション1',
+            ],
+        ],
+        [
+            'bounds' => [
+                'x' => 1250,
+                'y' => 0,
+                'width' => 1250,
+                'height' => 1686,
+            ],
+            'action' => [
+                'type' => 'message',
+                'text' => 'アクション2',
+            ],
+        ],
+    ],
+];
+
+$response = LineWorks::botClient()->richMenu()->create($richMenu);
+$richMenuId = $response->getRichMenuId();
+
+// リッチメニューをユーザーに設定
+$result = LineWorks::botClient()->richMenu()->setForUser('user123', $richMenuId);
+
+// ユーザーのリッチメニューを取得
+$userRichMenu = LineWorks::botClient()->richMenu()->getForUser('user123');
+
+// リッチメニューの削除
+$result = LineWorks::botClient()->richMenu()->delete($richMenuId);
+```
+
+### ボット管理関連
+
+```php
+use Sumihiro\LineWorksClient\Facades\LineWorks;
+
+// ボット情報の取得
+$botInfo = LineWorks::botClient()->management()->info();
+echo 'ボット名: ' . $botInfo->getName();
+echo 'ステータス: ' . $botInfo->getStatus();
+
+// ドメイン情報の取得
+$domainInfo = LineWorks::botClient()->management()->domainInfo();
+echo 'ドメインID: ' . $domainInfo['domainId'];
+echo 'ドメイン名: ' . $domainInfo['domainName'];
+```
+
 ## スコープについて
 
 LINE WORKS APIでは、アクセストークンを取得する際に「スコープ」を指定する必要があります。スコープによって、アクセスできるAPIが異なります。
@@ -248,32 +373,11 @@ LINE WORKS APIでは、アクセストークンを取得する際に「スコー
 - `bot`: ボット関連のAPI（デフォルト）
 - `user`: ユーザー情報関連のAPI
 - `admin`: 管理者向けAPI
-- `contact`: 連絡先関連のAPI
-- `calendar`: カレンダー関連のAPI
-- `drive`: ドライブ関連のAPI
 
 複数のスコープを指定する場合は、スペース区切りで指定します：
 
 ```php
 'scope' => 'bot user calendar', // 複数のスコープを指定
-```
-
-## Bot APIの使用例
-
-### テキストメッセージの送信
-
-```php
-$response = LineWorks::botClient()->sendText('user123', 'こんにちは！');
-```
-
-### リッチメニューの取得
-
-```php
-$richMenus = LineWorks::botClient()->getRichMenuList();
-
-foreach ($richMenus->getRichMenuList() as $richMenu) {
-    echo $richMenu['richMenuId'] . ': ' . $richMenu['name'] . PHP_EOL;
-}
 ```
 
 ## エラーハンドリング
@@ -284,7 +388,7 @@ use Sumihiro\LineWorksClient\Exceptions\AuthenticationException;
 use Sumihiro\LineWorksClient\Exceptions\ConfigurationException;
 
 try {
-    $response = LineWorks::botClient()->sendText('user123', 'こんにちは！');
+    $response = LineWorks::botClient()->message()->sendText('user123', 'こんにちは！');
 } catch (ApiException $e) {
     // API呼び出しエラー
     $statusCode = $e->getStatusCode();
