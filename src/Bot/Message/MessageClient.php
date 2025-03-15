@@ -2,7 +2,7 @@
 
 namespace Sumihiro\LineWorksClient\Bot\Message;
 
-use Sumihiro\LineWorksClient\DTO\Bot\MessageResponse;
+use Sumihiro\LineWorksClient\DTO\Bot\Message\MessageResponse;
 use Sumihiro\LineWorksClient\Exceptions\ApiException;
 use Sumihiro\LineWorksClient\LineWorksClient;
 
@@ -31,7 +31,7 @@ class MessageClient
      *
      * @param string $accountId
      * @param string $content
-     * @return \Sumihiro\LineWorksClient\DTO\Bot\MessageResponse
+     * @return \Sumihiro\LineWorksClient\DTO\Bot\Message\MessageResponse
      * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
      */
     public function sendText(string $accountId, string $content): MessageResponse
@@ -49,7 +49,7 @@ class MessageClient
      *
      * @param string $accountId
      * @param array<string, mixed> $message
-     * @return \Sumihiro\LineWorksClient\DTO\Bot\MessageResponse
+     * @return \Sumihiro\LineWorksClient\DTO\Bot\Message\MessageResponse
      * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
      */
     public function sendMessage(string $accountId, array $message): MessageResponse

@@ -1,6 +1,6 @@
 <?php
 
-namespace Sumihiro\LineWorksClient\DTO\Bot;
+namespace Sumihiro\LineWorksClient\DTO\Bot\Message;
 
 use Sumihiro\LineWorksClient\DTO\BaseDTO;
 
@@ -33,6 +33,16 @@ class MessageResponse extends BaseDTO
      */
     public function isSuccess(): bool
     {
-        return $this->has('messageId');
+        // messageIdがある場合は成功
+        if ($this->has('messageId')) {
+            return true;
+        }
+        
+        // レスポンスが空の場合も成功とみなす（LINE WORKS APIの仕様）
+        if (empty($this->data)) {
+            return true;
+        }
+        
+        return false;
     }
 } 

@@ -41,7 +41,6 @@ LINEWORKS_PRIVATE_KEY=your-private-key
 LINEWORKS_CLIENT_ID=your-client-id
 LINEWORKS_CLIENT_SECRET=your-client-secret
 LINEWORKS_DOMAIN_ID=your-domain-id
-LINEWORKS_CONSUMER_KEY=your-consumer-key
 LINEWORKS_SCOPE=bot
 
 # Bot機能を使用する場合に必須のパラメータ
@@ -121,7 +120,6 @@ $botConfig = [
     'client_id' => 'your-client-id',
     'client_secret' => 'your-client-secret',
     'domain_id' => 'your-domain-id',
-    'consumer_key' => 'your-consumer-key',
     'scope' => 'bot', // スコープを指定（デフォルトは 'bot'）
     
     // Bot機能を使用する場合に必須のパラメータ
@@ -170,7 +168,6 @@ $config = [
     'client_id' => 'your-client-id',
     'client_secret' => 'your-client-secret',
     'domain_id' => 'your-domain-id',
-    'consumer_key' => 'your-consumer-key',
     'scope' => 'user', // スコープを指定（例: 'user', 'admin', 'contact' など）
     
     // Bot機能を使用しない場合は不要
@@ -216,7 +213,6 @@ $adminResponse = $client->get('admin/users');
         'client_id' => env('LINEWORKS_CLIENT_ID'),
         'client_secret' => env('LINEWORKS_CLIENT_SECRET'),
         'domain_id' => env('LINEWORKS_DOMAIN_ID'),
-        'consumer_key' => env('LINEWORKS_CONSUMER_KEY'),
         'scope' => env('LINEWORKS_SCOPE', 'bot'), // スコープを指定（デフォルトは 'bot'）
         
         // Bot機能を使用する場合に必須のパラメータ
@@ -230,7 +226,6 @@ $adminResponse = $client->get('admin/users');
         'client_id' => env('LINEWORKS_ANOTHER_CLIENT_ID'),
         'client_secret' => env('LINEWORKS_ANOTHER_CLIENT_SECRET'),
         'domain_id' => env('LINEWORKS_ANOTHER_DOMAIN_ID'),
-        'consumer_key' => env('LINEWORKS_ANOTHER_CONSUMER_KEY'),
         'scope' => env('LINEWORKS_ANOTHER_SCOPE', 'bot'), // スコープを指定（デフォルトは 'bot'）
         
         // Bot機能を使用する場合に必須のパラメータ
@@ -427,6 +422,101 @@ try {
         'message' => $e->getMessage(),
     ]);
 }
+```
+
+## サンプルスクリプト
+
+このライブラリには、LINE WORKS APIの動作確認を行うためのサンプルスクリプトが含まれています。
+
+### 設定
+
+1. `examples/config.example.php` をコピーして `examples/config.php` を作成します。
+2. `examples/config.php` に実際の認証情報を設定します。
+
+```php
+return [
+    // 基本認証に必須のパラメータ
+    'service_account' => 'your-service-account',
+    'private_key' => 'your-private-key',
+    'client_id' => 'your-client-id',
+    'client_secret' => 'your-client-secret',
+    'domain_id' => 'your-domain-id',
+    'scope' => 'bot',
+    
+    // Bot機能を使用する場合に必須のパラメータ
+    'bot_id' => 'your-bot-id',
+    'bot_secret' => 'your-bot-secret',
+    
+    // テスト用のパラメータ
+    'test_account_id' => 'test-user@example.com', // テスト用のアカウントID
+    'test_channel_id' => 'test-channel-id', // テスト用のチャンネルID
+];
+```
+
+### メッセージ送信
+
+```bash
+# テキストメッセージの送信
+php examples/send_message.php user@example.com "こんにちは！"
+
+# 設定ファイルに指定されたテストアカウントにメッセージを送信
+php examples/send_message.php
+```
+
+### チャンネル（トークルーム）操作
+
+```bash
+# チャンネルの作成
+php examples/channel_operations.php create "テストチャンネル" user1@example.com user2@example.com
+
+# チャンネル情報の取得
+php examples/channel_operations.php info channel-id
+
+# チャンネルのメンバーリスト取得
+php examples/channel_operations.php members channel-id
+
+# チャンネルにメッセージを送信
+php examples/channel_operations.php send channel-id "こんにちは！"
+
+# チャンネルから退室
+php examples/channel_operations.php leave channel-id
+```
+
+### リッチメニュー操作
+
+```bash
+# リッチメニューの一覧取得
+php examples/rich_menu_operations.php list
+
+# リッチメニューの作成
+php examples/rich_menu_operations.php create "テストメニュー"
+
+# リッチメニューの詳細情報取得
+php examples/rich_menu_operations.php get rich-menu-id
+
+# リッチメニュー画像のアップロード
+php examples/rich_menu_operations.php upload rich-menu-id /path/to/image.jpg
+
+# ユーザーにリッチメニューを設定
+php examples/rich_menu_operations.php set-user rich-menu-id user@example.com
+
+# ユーザーのリッチメニュー取得
+php examples/rich_menu_operations.php get-user user@example.com
+
+# ユーザーのリッチメニュー削除
+php examples/rich_menu_operations.php delete-user user@example.com
+
+# デフォルトリッチメニューの設定
+php examples/rich_menu_operations.php set-default rich-menu-id
+
+# デフォルトリッチメニューの取得
+php examples/rich_menu_operations.php get-default
+
+# デフォルトリッチメニューの削除
+php examples/rich_menu_operations.php delete-default
+
+# リッチメニューの削除
+php examples/rich_menu_operations.php delete rich-menu-id
 ```
 
 ## ライセンス

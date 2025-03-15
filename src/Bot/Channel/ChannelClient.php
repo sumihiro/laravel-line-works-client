@@ -2,8 +2,10 @@
 
 namespace Sumihiro\LineWorksClient\Bot\Channel;
 
-use Sumihiro\LineWorksClient\DTO\Bot\ChannelResponse;
-use Sumihiro\LineWorksClient\DTO\Bot\MessageResponse;
+use Sumihiro\LineWorksClient\DTO\Bot\Channel\CreateChannelResponse;
+use Sumihiro\LineWorksClient\DTO\Bot\Channel\InfoResponse;
+use Sumihiro\LineWorksClient\DTO\Bot\Channel\MembersResponse;
+use Sumihiro\LineWorksClient\DTO\Bot\Message\MessageResponse;
 use Sumihiro\LineWorksClient\Exceptions\ApiException;
 use Sumihiro\LineWorksClient\LineWorksClient;
 
@@ -32,19 +34,16 @@ class ChannelClient
      *
      * @param array<string, mixed> $accountIds
      * @param string|null $title
-     * @return \Sumihiro\LineWorksClient\DTO\Bot\ChannelResponse
+     * @return \Sumihiro\LineWorksClient\DTO\Bot\Channel\CreateChannelResponse
      * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
      */
-    public function create(array $accountIds, ?string $title = null): ChannelResponse
+    public function create(array $accountIds, ?string $title = null): CreateChannelResponse
     {
         $botId = $this->client->getBotId();
-        $domainId = $this->client->getDomainId();
 
         $endpoint = "bots/{$botId}/channels";
         $data = [
-            'botId' => $botId,
-            'domainId' => $domainId,
-            'accountIds' => $accountIds,
+            'members' => $accountIds,
         ];
 
         if ($title !== null) {
@@ -53,24 +52,24 @@ class ChannelClient
 
         $response = $this->client->post($endpoint, $data);
 
-        return new ChannelResponse($response);
+        return new CreateChannelResponse($response);
     }
 
     /**
      * Get channel information.
      *
      * @param string $channelId
-     * @return \Sumihiro\LineWorksClient\DTO\Bot\ChannelResponse
+     * @return \Sumihiro\LineWorksClient\DTO\Bot\Channel\InfoResponse
      * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
      */
-    public function info(string $channelId): ChannelResponse
+    public function info(string $channelId): InfoResponse
     {
         $botId = $this->client->getBotId();
         $endpoint = "bots/{$botId}/channels/{$channelId}";
 
         $response = $this->client->get($endpoint);
 
-        return new ChannelResponse($response);
+        return new InfoResponse($response);
     }
 
     /**
@@ -94,17 +93,17 @@ class ChannelClient
      * Get channel member list.
      *
      * @param string $channelId
-     * @return \Sumihiro\LineWorksClient\DTO\Bot\ChannelResponse
+     * @return \Sumihiro\LineWorksClient\DTO\Bot\Channel\MembersResponse
      * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
      */
-    public function members(string $channelId): ChannelResponse
+    public function members(string $channelId): MembersResponse
     {
         $botId = $this->client->getBotId();
         $endpoint = "bots/{$botId}/channels/{$channelId}/members";
 
         $response = $this->client->get($endpoint);
 
-        return new ChannelResponse($response);
+        return new MembersResponse($response);
     }
 
     /**
@@ -112,22 +111,16 @@ class ChannelClient
      *
      * @param string $channelId
      * @param array<string, mixed> $message
-     * @return \Sumihiro\LineWorksClient\DTO\Bot\MessageResponse
+     * @return \Sumihiro\LineWorksClient\DTO\Bot\Message\MessageResponse
      * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
      */
     public function sendMessage(string $channelId, array $message): MessageResponse
     {
         $botId = $this->client->getBotId();
-        $domainId = $this->client->getDomainId();
 
         $endpoint = "bots/{$botId}/channels/{$channelId}/messages";
-        $data = array_merge($message, [
-            'botId' => $botId,
-            'channelId' => $channelId,
-            'domainId' => $domainId,
-        ]);
 
-        $response = $this->client->post($endpoint, $data);
+        $response = $this->client->post($endpoint, $message);
 
         return new MessageResponse($response);
     }

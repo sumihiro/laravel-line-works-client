@@ -5,8 +5,10 @@ namespace Tests\Unit\Bot;
 use Mockery;
 use PHPUnit\Framework\TestCase;
 use Sumihiro\LineWorksClient\Bot\Channel\ChannelClient;
-use Sumihiro\LineWorksClient\DTO\Bot\ChannelResponse;
-use Sumihiro\LineWorksClient\DTO\Bot\MessageResponse;
+use Sumihiro\LineWorksClient\DTO\Bot\Channel\CreateChannelResponse;
+use Sumihiro\LineWorksClient\DTO\Bot\Channel\InfoResponse;
+use Sumihiro\LineWorksClient\DTO\Bot\Channel\MembersResponse;
+use Sumihiro\LineWorksClient\DTO\Bot\Message\MessageResponse;
 use Sumihiro\LineWorksClient\LineWorksClient;
 
 class ChannelTest extends TestCase
@@ -21,13 +23,10 @@ class ChannelTest extends TestCase
     {
         $mockClient = Mockery::mock(LineWorksClient::class);
         $mockClient->shouldReceive('getBotId')->andReturn('test-bot-id');
-        $mockClient->shouldReceive('getDomainId')->andReturn('test-domain-id');
         $mockClient->shouldReceive('post')->once()->with(
             'bots/test-bot-id/channels',
             [
-                'botId' => 'test-bot-id',
-                'domainId' => 'test-domain-id',
-                'accountIds' => ['user1@example.com', 'user2@example.com'],
+                'members' => ['user1@example.com', 'user2@example.com'],
                 'title' => 'Test Channel',
             ]
         )->andReturn(['channelId' => 'test-channel-id']);
@@ -35,7 +34,7 @@ class ChannelTest extends TestCase
         $channelClient = new ChannelClient($mockClient);
         $response = $channelClient->create(['user1@example.com', 'user2@example.com'], 'Test Channel');
 
-        $this->assertInstanceOf(ChannelResponse::class, $response);
+        $this->assertInstanceOf(CreateChannelResponse::class, $response);
         $this->assertEquals('test-channel-id', $response->getChannelId());
         $this->assertTrue($response->isSuccess());
     }
@@ -48,18 +47,26 @@ class ChannelTest extends TestCase
         $mockClient->shouldReceive('get')->once()->with(
             'bots/test-bot-id/channels/test-channel-id'
         )->andReturn([
+            'domainId' => 123456,
             'channelId' => 'test-channel-id',
-            'name' => 'Test Channel',
-            'type' => 'group',
+            'title' => 'Test Channel',
+            'channelType' => [
+                'type' => 'group'
+            ],
+            'createdTime' => 1609459200000,
+            'status' => 'active'
         ]);
 
         $channelClient = new ChannelClient($mockClient);
         $response = $channelClient->info('test-channel-id');
 
-        $this->assertInstanceOf(ChannelResponse::class, $response);
+        $this->assertInstanceOf(InfoResponse::class, $response);
         $this->assertEquals('test-channel-id', $response->getChannelId());
-        $this->assertEquals('Test Channel', $response->getName());
+        $this->assertEquals('Test Channel', $response->getTitle());
         $this->assertEquals('group', $response->getType());
+        $this->assertEquals(123456, $response->getDomainId());
+        $this->assertEquals(1609459200000, $response->getCreatedTime());
+        $this->assertEquals('active', $response->getStatus());
         $this->assertTrue($response->isSuccess());
     }
 
@@ -86,21 +93,24 @@ class ChannelTest extends TestCase
         $mockClient->shouldReceive('get')->once()->with(
             'bots/test-bot-id/channels/test-channel-id/members'
         )->andReturn([
-            'channelId' => 'test-channel-id',
             'members' => [
-                ['accountId' => 'user1@example.com'],
-                ['accountId' => 'user2@example.com'],
+                'user1@example.com',
+                'user2@example.com',
             ],
-            'memberCount' => 2,
+            'responseMetaData' => [
+                'nextCursor' => 'next-page-token'
+            ]
         ]);
 
         $channelClient = new ChannelClient($mockClient);
         $response = $channelClient->members('test-channel-id');
 
-        $this->assertInstanceOf(ChannelResponse::class, $response);
-        $this->assertEquals('test-channel-id', $response->getChannelId());
+        $this->assertInstanceOf(MembersResponse::class, $response);
         $this->assertCount(2, $response->getMembers());
         $this->assertEquals(2, $response->getMemberCount());
+        $this->assertEquals('user1@example.com', $response->getMembers()[0]['accountId']);
+        $this->assertEquals('user2@example.com', $response->getMembers()[1]['accountId']);
+        $this->assertEquals('next-page-token', $response->getNextCursor());
         $this->assertTrue($response->isSuccess());
     }
 
@@ -109,7 +119,6 @@ class ChannelTest extends TestCase
     {
         $mockClient = Mockery::mock(LineWorksClient::class);
         $mockClient->shouldReceive('getBotId')->andReturn('test-bot-id');
-        $mockClient->shouldReceive('getDomainId')->andReturn('test-domain-id');
         $mockClient->shouldReceive('post')->once()->with(
             'bots/test-bot-id/channels/test-channel-id/messages',
             [
@@ -117,11 +126,8 @@ class ChannelTest extends TestCase
                     'type' => 'text',
                     'text' => 'Hello, channel!',
                 ],
-                'botId' => 'test-bot-id',
-                'channelId' => 'test-channel-id',
-                'domainId' => 'test-domain-id',
             ]
-        )->andReturn(['messageId' => 'test-message-id']);
+        )->andReturn([]);
 
         $channelClient = new ChannelClient($mockClient);
         $response = $channelClient->sendMessage('test-channel-id', [
@@ -132,5 +138,7 @@ class ChannelTest extends TestCase
         ]);
 
         $this->assertInstanceOf(MessageResponse::class, $response);
+        $this->assertTrue($response->isSuccess());
+        $this->assertNull($response->getMessageId());
     }
 } 

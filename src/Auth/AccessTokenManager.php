@@ -39,6 +39,13 @@ class AccessTokenManager
     protected array $globalConfig;
 
     /**
+     * Custom logger callback.
+     *
+     * @var callable|null
+     */
+    protected $loggerCallback = null;
+
+    /**
      * Create a new access token manager instance.
      *
      * @param \GuzzleHttp\Client $client
@@ -57,6 +64,17 @@ class AccessTokenManager
         $this->jwtTokenGenerator = $jwtTokenGenerator;
         $this->config = $config;
         $this->globalConfig = $globalConfig;
+    }
+
+    /**
+     * Set a custom logger callback.
+     *
+     * @param callable $callback
+     * @return void
+     */
+    public function setLogger(callable $callback): void
+    {
+        $this->loggerCallback = $callback;
     }
 
     /**
@@ -98,8 +116,14 @@ class AccessTokenManager
             // Generate JWT token
             $jwtToken = $this->jwtTokenGenerator->generate();
 
+            // Get the scope from the configuration
+            $scope = $this->config['scope'] ?? 'bot';
+
             // Log the request if logging is enabled
-            $this->logDebug('Requesting access token from LINE WORKS API');
+            $this->logDebug('Requesting access token from LINE WORKS API', [
+                'client_id' => $this->config['client_id'],
+                'scope' => $scope,
+            ]);
 
             // Make the request to the LINE WORKS API
             $response = $this->client->post('https://auth.worksmobile.com/oauth2/v2.0/token', [
@@ -108,7 +132,7 @@ class AccessTokenManager
                     'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
                     'client_id' => $this->config['client_id'],
                     'client_secret' => $this->config['client_secret'],
-                    'scope' => 'bot',
+                    'scope' => $scope,
                 ],
                 'headers' => [
                     'Content-Type' => 'application/x-www-form-urlencoded',
@@ -261,10 +285,19 @@ class AccessTokenManager
      */
     protected function log(string $level, string $message, array $context = []): void
     {
-        $channel = $this->globalConfig['logging']['channel'] ?? null;
-        $logger = $channel ? Log::channel($channel) : Log::stack(['single']);
-        
-        $logger->{$level}('[LineWorksClient] ' . $message, $context);
+        // カスタムロガーが設定されている場合はそれを使用
+        if ($this->loggerCallback !== null) {
+            call_user_func($this->loggerCallback, $level, '[AccessTokenManager] ' . $message, $context);
+            return;
+        }
+
+        // Laravelのロギングが有効な場合はそれを使用
+        if ($this->isLoggingEnabled()) {
+            $channel = $this->globalConfig['logging']['channel'] ?? null;
+            $logger = $channel ? Log::channel($channel) : Log::stack(['single']);
+            
+            $logger->{$level}('[AccessTokenManager] ' . $message, $context);
+        }
     }
 
     /**

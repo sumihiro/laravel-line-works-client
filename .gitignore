@@ -53,3 +53,7 @@ Thumbs.db
 *.bak
 *.swp
 *~ 
+
+# Examples
+/examples/config.php
+/examples/private.key 

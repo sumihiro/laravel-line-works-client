@@ -68,9 +68,6 @@ return [
             
             // Domain ID
             'domain_id' => env('LINEWORKS_DOMAIN_ID'),
-            
-            // Consumerkey
-            'consumer_key' => env('LINEWORKS_CONSUMER_KEY'),
         ],
         
         // You can add more bots here
@@ -83,7 +80,6 @@ return [
         //     'bot_id' => env('LINEWORKS_ANOTHER_BOT_ID'),
         //     'bot_secret' => env('LINEWORKS_ANOTHER_BOT_SECRET'),
         //     'domain_id' => env('LINEWORKS_ANOTHER_DOMAIN_ID'),
-        //     'consumer_key' => env('LINEWORKS_ANOTHER_CONSUMER_KEY'),
         // ],
     ],
 ]; 

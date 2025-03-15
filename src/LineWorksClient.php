@@ -48,6 +48,13 @@ class LineWorksClient
     protected string $botName;
 
     /**
+     * Custom logger callback.
+     *
+     * @var callable|null
+     */
+    protected $loggerCallback = null;
+
+    /**
      * Create a new LINE WORKS client instance.
      *
      * @param string $botName
@@ -82,6 +89,27 @@ class LineWorksClient
             $config,
             $globalConfig
         );
+    }
+
+    /**
+     * Set a custom logger callback.
+     *
+     * @param callable $callback
+     * @return void
+     */
+    public function setLogger(callable $callback): void
+    {
+        $this->loggerCallback = $callback;
+    }
+
+    /**
+     * Get the access token manager instance.
+     *
+     * @return \Sumihiro\LineWorksClient\Auth\AccessTokenManager
+     */
+    public function getAccessTokenManager(): AccessTokenManager
+    {
+        return $this->accessTokenManager;
     }
 
     /**
@@ -394,10 +422,19 @@ class LineWorksClient
      */
     protected function log(string $level, string $message, array $context = []): void
     {
-        $channel = $this->globalConfig['logging']['channel'] ?? null;
-        $logger = $channel ? Log::channel($channel) : Log::stack(['single']);
-        
-        $logger->{$level}('[LineWorksClient] [' . $this->botName . '] ' . $message, $context);
+        // カスタムロガーが設定されている場合はそれを使用
+        if ($this->loggerCallback !== null) {
+            call_user_func($this->loggerCallback, $level, '[LineWorksClient] [' . $this->botName . '] ' . $message, $context);
+            return;
+        }
+
+        // Laravelのロギングが有効な場合はそれを使用
+        if ($this->isLoggingEnabled()) {
+            $channel = $this->globalConfig['logging']['channel'] ?? null;
+            $logger = $channel ? Log::channel($channel) : Log::stack(['single']);
+            
+            $logger->{$level}('[LineWorksClient] [' . $this->botName . '] ' . $message, $context);
+        }
     }
 
     /**

@@ -79,11 +79,12 @@ class JwtTokenGenerator
             $privateKey = $this->getPrivateKey();
             $now = time();
             
+            // LINE WORKSのドキュメントに従ったJWTペイロード（必須クレームのみ）
             $payload = [
-                'iss' => $this->config['service_account'],
-                'sub' => $this->config['service_account'],
-                'iat' => $now,
-                'exp' => $now + 3600, // 1 hour expiration
+                'iss' => $this->config['client_id'], // サービスアカウントのクライアントID
+                'sub' => $this->config['service_account'], // サービスアカウントのメールアドレス
+                'iat' => $now, // 発行時刻
+                'exp' => $now + 3600, // 有効期限（1時間後）
             ];
 
             return JWT::encode($payload, $privateKey, 'RS256');
