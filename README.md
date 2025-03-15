@@ -339,6 +339,14 @@ $richMenu = [
 $response = LineWorks::botClient()->richMenu()->create($richMenu);
 $richMenuId = $response->getRichMenuId();
 
+// リッチメニューの詳細情報を取得
+$richMenuInfo = LineWorks::botClient()->richMenu()->get($richMenuId);
+echo 'リッチメニュー名: ' . $richMenuInfo->getName();
+
+// リッチメニュー画像のアップロード
+// 注意: 画像サイズはリッチメニューのサイズと一致する必要があります（この例では2500x1686ピクセル）
+$result = LineWorks::botClient()->richMenu()->uploadImage($richMenuId, '/path/to/richmenu-image.jpg');
+
 // リッチメニューをユーザーに設定
 $result = LineWorks::botClient()->richMenu()->setForUser('user123', $richMenuId);
 
@@ -347,6 +355,15 @@ $userRichMenu = LineWorks::botClient()->richMenu()->getForUser('user123');
 
 // リッチメニューの削除
 $result = LineWorks::botClient()->richMenu()->delete($richMenuId);
+
+// デフォルトリッチメニューの設定
+$result = LineWorks::botClient()->richMenu()->setDefault($richMenuId);
+
+// デフォルトリッチメニューの取得
+$defaultRichMenu = LineWorks::botClient()->richMenu()->getDefault();
+
+// デフォルトリッチメニューの削除
+$result = LineWorks::botClient()->richMenu()->deleteDefault();
 ```
 
 ### ボット管理関連

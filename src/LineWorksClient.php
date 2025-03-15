@@ -193,6 +193,26 @@ class LineWorksClient
     }
 
     /**
+     * Send a multipart POST request to the LINE WORKS API.
+     *
+     * @param string $endpoint
+     * @param array<int, array<string, mixed>> $multipart
+     * @param array<string, string> $headers
+     * @return array<string, mixed>
+     * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
+     */
+    public function postMultipart(string $endpoint, array $multipart, array $headers = []): array
+    {
+        // Remove Content-Type header as it will be set automatically by Guzzle for multipart requests
+        unset($headers['Content-Type']);
+
+        return $this->request('POST', $endpoint, [
+            'multipart' => $multipart,
+            'headers' => $headers,
+        ]);
+    }
+
+    /**
      * Send a request to the LINE WORKS API.
      *
      * @param string $method

@@ -43,6 +43,23 @@ class RichMenuClient
     }
 
     /**
+     * Get a rich menu by ID.
+     *
+     * @param string $richMenuId
+     * @return \Sumihiro\LineWorksClient\DTO\Bot\RichMenuResponse
+     * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
+     */
+    public function get(string $richMenuId): RichMenuResponse
+    {
+        $botId = $this->client->getBotId();
+        $endpoint = "bots/{$botId}/richmenu/{$richMenuId}";
+
+        $response = $this->client->get($endpoint);
+
+        return new RichMenuResponse($response);
+    }
+
+    /**
      * Create a rich menu.
      *
      * @param array<string, mixed> $richMenu
@@ -140,10 +157,81 @@ class RichMenuClient
      */
     public function uploadImage(string $richMenuId, string $imagePath): bool
     {
+        if (!file_exists($imagePath)) {
+            throw new ApiException("Image file not found: {$imagePath}");
+        }
+
         $botId = $this->client->getBotId();
         $endpoint = "bots/{$botId}/richmenu/{$richMenuId}/content";
 
-        // TODO: Implement file upload
+        // Get file mime type
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->file($imagePath);
+
+        // Prepare multipart form data
+        $multipart = [
+            [
+                'name' => 'file',
+                'contents' => fopen($imagePath, 'r'),
+                'filename' => basename($imagePath),
+                'headers' => [
+                    'Content-Type' => $mimeType,
+                ],
+            ],
+        ];
+
+        $this->client->postMultipart($endpoint, $multipart);
+
+        return true;
+    }
+
+    /**
+     * Set the default rich menu.
+     *
+     * @param string $richMenuId
+     * @return bool
+     * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
+     */
+    public function setDefault(string $richMenuId): bool
+    {
+        $botId = $this->client->getBotId();
+        $endpoint = "bots/{$botId}/richmenu/default";
+
+        $this->client->post($endpoint, [
+            'richMenuId' => $richMenuId,
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Get the default rich menu.
+     *
+     * @return \Sumihiro\LineWorksClient\DTO\Bot\RichMenuResponse
+     * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
+     */
+    public function getDefault(): RichMenuResponse
+    {
+        $botId = $this->client->getBotId();
+        $endpoint = "bots/{$botId}/richmenu/default";
+
+        $response = $this->client->get($endpoint);
+
+        return new RichMenuResponse($response);
+    }
+
+    /**
+     * Delete the default rich menu.
+     *
+     * @return bool
+     * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
+     */
+    public function deleteDefault(): bool
+    {
+        $botId = $this->client->getBotId();
+        $endpoint = "bots/{$botId}/richmenu/default";
+
+        $this->client->delete($endpoint);
 
         return true;
     }
