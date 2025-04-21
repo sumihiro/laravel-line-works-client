@@ -16,7 +16,7 @@ return [
     'default' => env('LINEWORKS_DEFAULT_BOT', 'default'),
 
     // API Base URL
-    'api_base_url' => env('LINEWORKS_API_BASE_URL', 'https://www.worksapis.com/v1.0'),
+    'api_base_url' => env('LINEWORKS_API_BASE_URL', 'https://www.worksapis.com/v1.0/'),
 
     // Cache configuration
     'cache' => [
