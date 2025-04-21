@@ -174,7 +174,7 @@ class RichMenuTest extends TestCase
         
         // Mock setting rich menu image
         $mockClient->shouldReceive('post')->once()->with(
-            'bots/test-bot-id/richmenus/test-rich-menu-id/content',
+            'bots/test-bot-id/richmenus/test-rich-menu-id/image',
             ['fileId' => 'test-file-id']
         )->andReturn([]);
 
@@ -239,7 +239,7 @@ class RichMenuTest extends TestCase
         // Mock setting rich menu image
         $mockClient->shouldReceive('post')
             ->once()
-            ->with('bots/test-bot-id/richmenus/test-rich-menu-id/content', ['fileId' => 'test-file-id'])
+            ->with('bots/test-bot-id/richmenus/test-rich-menu-id/image', ['fileId' => 'test-file-id'])
             ->andReturn([]);
             
         // Create RichMenuClient instance
@@ -260,8 +260,7 @@ class RichMenuTest extends TestCase
         $mockClient = Mockery::mock(LineWorksClient::class);
         $mockClient->shouldReceive('getBotId')->andReturn('test-bot-id');
         $mockClient->shouldReceive('post')->once()->with(
-            'bots/test-bot-id/richmenus/default',
-            ['richMenuId' => 'test-rich-menu-id']
+            'bots/test-bot-id/richmenus/test-rich-menu-id/set-default'
         )->andReturn([]);
 
         $richMenuClient = new RichMenuClient($mockClient);
