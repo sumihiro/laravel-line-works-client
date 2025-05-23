@@ -316,8 +316,9 @@ class LineWorksClient
 
             // Check if the request was successful
             if ($statusCode < 200 || $statusCode >= 300) {
+                $message = ($responseData['code'] ?? '') . ' ' . ($responseData['description'] ?? 'Unknown error');
                 throw new ApiException(
-                    'LINE WORKS API request failed: ' . ($responseData['message'] ?? 'Unknown error'),
+                    'LINE WORKS API request failed: ' . $message,
                     0,
                     $responseData,
                     $statusCode
