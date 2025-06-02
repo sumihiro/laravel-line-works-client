@@ -68,6 +68,9 @@ return [
             
             // Domain ID
             'domain_id' => env('LINEWORKS_DOMAIN_ID'),
+            
+            // Scope (for monitoring, use 'monitoring.read' or 'bot monitoring.read')
+            'scope' => env('LINEWORKS_SCOPE', 'bot'),
         ],
         
         // You can add more bots here
