@@ -178,15 +178,16 @@ class LineWorksClient
      * @param string $endpoint
      * @param array<string, mixed> $query
      * @param array<string, string> $headers
-     * @return array<string, mixed>
+     * @param array<string, mixed> $guzzleOptions Additional Guzzle options (e.g., ['allow_redirects' => false])
+     * @return array<string, mixed>|\Psr\Http\Message\ResponseInterface
      * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
      */
-    public function get(string $endpoint, array $query = [], array $headers = []): array
+    public function get(string $endpoint, array $query = [], array $headers = [], array $guzzleOptions = []): array|\Psr\Http\Message\ResponseInterface
     {
         return $this->request('GET', $endpoint, [
             'query' => $query,
             'headers' => $headers,
-        ]);
+        ], $guzzleOptions);
     }
 
     /**
@@ -195,15 +196,16 @@ class LineWorksClient
      * @param string $endpoint
      * @param array<string, mixed> $data
      * @param array<string, string> $headers
-     * @return array<string, mixed>
+     * @param array<string, mixed> $guzzleOptions Additional Guzzle options
+     * @return array<string, mixed>|\Psr\Http\Message\ResponseInterface
      * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
      */
-    public function post(string $endpoint, array $data = [], array $headers = []): array
+    public function post(string $endpoint, array $data = [], array $headers = [], array $guzzleOptions = []): array|\Psr\Http\Message\ResponseInterface
     {
         return $this->request('POST', $endpoint, [
             'json' => $data,
             'headers' => $headers,
-        ]);
+        ], $guzzleOptions);
     }
 
     /**
@@ -212,15 +214,16 @@ class LineWorksClient
      * @param string $endpoint
      * @param array<string, mixed> $data
      * @param array<string, string> $headers
-     * @return array<string, mixed>
+     * @param array<string, mixed> $guzzleOptions Additional Guzzle options
+     * @return array<string, mixed>|\Psr\Http\Message\ResponseInterface
      * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
      */
-    public function put(string $endpoint, array $data = [], array $headers = []): array
+    public function put(string $endpoint, array $data = [], array $headers = [], array $guzzleOptions = []): array|\Psr\Http\Message\ResponseInterface
     {
         return $this->request('PUT', $endpoint, [
             'json' => $data,
             'headers' => $headers,
-        ]);
+        ], $guzzleOptions);
     }
 
     /**
@@ -229,15 +232,16 @@ class LineWorksClient
      * @param string $endpoint
      * @param array<string, mixed> $query
      * @param array<string, string> $headers
-     * @return array<string, mixed>
+     * @param array<string, mixed> $guzzleOptions Additional Guzzle options
+     * @return array<string, mixed>|\Psr\Http\Message\ResponseInterface
      * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
      */
-    public function delete(string $endpoint, array $query = [], array $headers = []): array
+    public function delete(string $endpoint, array $query = [], array $headers = [], array $guzzleOptions = []): array|\Psr\Http\Message\ResponseInterface
     {
         return $this->request('DELETE', $endpoint, [
             'query' => $query,
             'headers' => $headers,
-        ]);
+        ], $guzzleOptions);
     }
 
     /**
@@ -246,10 +250,11 @@ class LineWorksClient
      * @param string $endpoint
      * @param array<int, array<string, mixed>> $multipart
      * @param array<string, string> $headers
-     * @return array<string, mixed>
+     * @param array<string, mixed> $guzzleOptions Additional Guzzle options
+     * @return array<string, mixed>|\Psr\Http\Message\ResponseInterface
      * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
      */
-    public function postMultipart(string $endpoint, array $multipart, array $headers = []): array
+    public function postMultipart(string $endpoint, array $multipart, array $headers = [], array $guzzleOptions = []): array|\Psr\Http\Message\ResponseInterface
     {
         // Remove Content-Type header as it will be set automatically by Guzzle for multipart requests
         unset($headers['Content-Type']);
@@ -257,7 +262,7 @@ class LineWorksClient
         return $this->request('POST', $endpoint, [
             'multipart' => $multipart,
             'headers' => $headers,
-        ]);
+        ], $guzzleOptions);
     }
 
     /**
@@ -266,10 +271,11 @@ class LineWorksClient
      * @param string $method
      * @param string $endpoint
      * @param array<string, mixed> $options
-     * @return array<string, mixed>
+     * @param array<string, mixed> $guzzleOptions Additional Guzzle options
+     * @return array<string, mixed>|\Psr\Http\Message\ResponseInterface
      * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
      */
-    protected function request(string $method, string $endpoint, array $options = []): array
+    protected function request(string $method, string $endpoint, array $options = [], array $guzzleOptions = []): array|\Psr\Http\Message\ResponseInterface
     {
         try {
             // Get the access token
@@ -284,6 +290,9 @@ class LineWorksClient
                 ]
             );
 
+            // Merge Guzzle options (allow_redirects, etc.)
+            $options = array_merge($options, $guzzleOptions);
+
             // Log the request if logging is enabled
             $this->logDebug('Sending request to LINE WORKS API', [
                 'method' => $method,
@@ -293,6 +302,11 @@ class LineWorksClient
 
             // Send the request
             $response = $this->client->request($method, $endpoint, $options);
+
+            // If allow_redirects is false, return raw response
+            if (isset($guzzleOptions['allow_redirects']) && $guzzleOptions['allow_redirects'] === false) {
+                return $response;
+            }
 
             // Get the response body
             $body = (string) $response->getBody();

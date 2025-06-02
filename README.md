@@ -6,6 +6,7 @@ LINE WORKS APIをLaravelから簡単に利用するためのクライアント�
 
 - LINE WORKS APIの認証（JWT）
 - Bot APIの利用
+- Bot モニタリング機能（トーク内容ダウンロード）
 - 複数のボット設定のサポート
 - トークンのキャッシュ
 - ログ機能

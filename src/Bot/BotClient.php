@@ -6,6 +6,7 @@ use Sumihiro\LineWorksClient\Bot\Attachment\AttachmentClient;
 use Sumihiro\LineWorksClient\Bot\Channel\ChannelClient;
 use Sumihiro\LineWorksClient\Bot\Management\BotManagementClient;
 use Sumihiro\LineWorksClient\Bot\Message\MessageClient;
+use Sumihiro\LineWorksClient\Bot\Monitoring\MessageContentsClient;
 use Sumihiro\LineWorksClient\Bot\RichMenu\RichMenuClient;
 use Sumihiro\LineWorksClient\LineWorksClient;
 
@@ -52,6 +53,13 @@ class BotClient
      * @var \Sumihiro\LineWorksClient\Bot\Attachment\AttachmentClient|null
      */
     protected ?AttachmentClient $attachmentClient = null;
+
+    /**
+     * The monitoring client instance.
+     *
+     * @var \Sumihiro\LineWorksClient\Bot\Monitoring\MessageContentsClient|null
+     */
+    protected ?MessageContentsClient $monitoringClient = null;
 
     /**
      * Create a new bot client instance.
@@ -132,6 +140,20 @@ class BotClient
         }
 
         return $this->botManagementClient;
+    }
+
+    /**
+     * Get the monitoring client instance.
+     *
+     * @return \Sumihiro\LineWorksClient\Bot\Monitoring\MessageContentsClient
+     */
+    public function monitoring(): MessageContentsClient
+    {
+        if ($this->monitoringClient === null) {
+            $this->monitoringClient = new MessageContentsClient($this->client);
+        }
+
+        return $this->monitoringClient;
     }
 
     /**
