@@ -338,4 +338,88 @@ class MessageContentsClientTest extends TestCase
         // Assert
         $this->assertEquals($downloadUrl, $result);
     }
+
+    /** @test */
+    public function it_can_download_with_carbon_instances(): void
+    {
+        // Arrange
+        $startTime = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', '2025-05-01 00:00:00', 'Asia/Tokyo');
+        $endTime = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', '2025-05-31 23:59:59', 'Asia/Tokyo');
+        $language = 'ja_JP';
+        $downloadUrl = 'https://example.com/download/carbon123';
+        $csvContent = "日時,送信者,受信者,チャンネルID,トーク\n2025-05-30T18:24:53+09:00,[Bot]test,user@example.com,channel123,Hello World\n";
+
+        // Mock the 302 redirect response
+        $redirectResponse = Mockery::mock(ResponseInterface::class);
+        $redirectResponse->shouldReceive('getStatusCode')->andReturn(302);
+        $redirectResponse->shouldReceive('getHeader')->with('Location')->andReturn([$downloadUrl]);
+
+        // Mock the download response
+        $downloadResponse = ['raw_response' => $csvContent];
+
+        $this->lineWorksClient->shouldReceive('get')
+            ->with('monitoring/message-contents/download', [
+                'startTime' => $startTime->toIso8601String(),
+                'endTime' => $endTime->toIso8601String(),
+                'language' => $language,
+            ], [], ['allow_redirects' => false])
+            ->andReturn($redirectResponse);
+
+        $this->lineWorksClient->shouldReceive('getAccessTokenManager')
+            ->andReturn($this->tokenManager);
+
+        $this->tokenManager->shouldReceive('getToken')
+            ->andReturn('test-access-token');
+
+        $this->lineWorksClient->shouldReceive('requestExternal')
+            ->with('GET', $downloadUrl, [
+                'headers' => [
+                    'Authorization' => 'Bearer test-access-token',
+                ],
+            ])
+            ->andReturn($downloadResponse);
+
+        // Act
+        $response = $this->client->download($startTime, $endTime, $language);
+
+        // Assert
+        $this->assertInstanceOf(MessageContentsResponse::class, $response);
+        $this->assertTrue($response->isSuccess());
+        $this->assertEquals($downloadUrl, $response->getDownloadUrl());
+        $this->assertEquals($csvContent, $response->getCsvContent());
+        $this->assertEquals(1, $response->getMessageCount());
+        
+        // Verify metadata contains ISO strings instead of Carbon objects
+        $metadata = $response->getMetadata();
+        $this->assertEquals($startTime->toIso8601String(), $metadata['startTime']);
+        $this->assertEquals($endTime->toIso8601String(), $metadata['endTime']);
+    }
+
+    /** @test */
+    public function it_can_get_download_url_only_with_carbon_instances(): void
+    {
+        // Arrange
+        $startTime = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', '2025-05-01 00:00:00', 'UTC');
+        $endTime = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', '2025-05-31 23:59:59', 'UTC');
+        $language = 'en_US';
+        $downloadUrl = 'https://example.com/download/carbon456';
+
+        $redirectResponse = Mockery::mock(ResponseInterface::class);
+        $redirectResponse->shouldReceive('getStatusCode')->andReturn(302);
+        $redirectResponse->shouldReceive('getHeader')->with('Location')->andReturn([$downloadUrl]);
+
+        $this->lineWorksClient->shouldReceive('get')
+            ->with('monitoring/message-contents/download', [
+                'startTime' => $startTime->toIso8601String(),
+                'endTime' => $endTime->toIso8601String(),
+                'language' => $language,
+            ], [], ['allow_redirects' => false])
+            ->andReturn($redirectResponse);
+
+        // Act
+        $result = $this->client->getDownloadUrlOnly($startTime, $endTime, $language);
+
+        // Assert
+        $this->assertEquals($downloadUrl, $result);
+    }
 } 

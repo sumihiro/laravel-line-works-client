@@ -2,6 +2,7 @@
 
 namespace Sumihiro\LineWorksClient\Bot\Monitoring;
 
+use Carbon\CarbonInterface;
 use Sumihiro\LineWorksClient\DTO\Bot\Monitoring\MessageContentsResponse;
 use Sumihiro\LineWorksClient\Exceptions\ApiException;
 use Sumihiro\LineWorksClient\LineWorksClient;
@@ -32,8 +33,8 @@ class MessageContentsClient
      * 1. GET request to the download endpoint returns 302 redirect
      * 2. Follow the redirect to download the actual content
      *
-     * @param string $startTime Start time in YYYY-MM-DDThh:mm:ssTZD format (will be URL encoded)
-     * @param string $endTime End time in YYYY-MM-DDThh:mm:ssTZD format (will be URL encoded)
+     * @param string|\Carbon\CarbonInterface $startTime Start time in YYYY-MM-DDThh:mm:ssTZD format or Carbon instance
+     * @param string|\Carbon\CarbonInterface $endTime End time in YYYY-MM-DDThh:mm:ssTZD format or Carbon instance
      * @param string|null $language CSV file language (ja_JP, ko_KR, zh_CN, zh_TW, en_US)
      * @param string|null $botMessageFilterType Bot message filter type (include, exclude, only)
      * @param int|null $domainId Domain ID (for group companies to get logs from another domain)
@@ -42,8 +43,8 @@ class MessageContentsClient
      * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
      */
     public function download(
-        string $startTime,
-        string $endTime,
+        string|CarbonInterface $startTime,
+        string|CarbonInterface $endTime,
         string $language = 'ja_JP',
         ?string $botMessageFilterType = null,
         ?int $domainId = null,
@@ -51,13 +52,17 @@ class MessageContentsClient
     ): MessageContentsResponse {
         $endpoint = "monitoring/message-contents/download";
         
+        // Convert Carbon instances to strings if needed
+        $startTimeString = $this->formatTimeParameter($startTime);
+        $endTimeString = $this->formatTimeParameter($endTime);
+        
         // Validate language parameter
         $this->validateLanguage($language);
         
         // Build query parameters
         $query = [
-            'startTime' => $startTime,
-            'endTime' => $endTime,
+            'startTime' => $startTimeString,
+            'endTime' => $endTimeString,
             'language' => $language,
         ];
 
@@ -93,8 +98,8 @@ class MessageContentsClient
                 'downloadUrl' => $downloadUrl,
                 'content' => $downloadResponse,
                 'metadata' => [
-                    'startTime' => $startTime,
-                    'endTime' => $endTime,
+                    'startTime' => $startTimeString,
+                    'endTime' => $endTimeString,
                     'language' => $language,
                     'botMessageFilterType' => $botMessageFilterType,
                     'domainId' => $domainId,
@@ -107,8 +112,8 @@ class MessageContentsClient
                 'Failed to download message contents: ' . $e->getMessage(),
                 $e->getCode(),
                 [
-                    'startTime' => $startTime,
-                    'endTime' => $endTime,
+                    'startTime' => $startTimeString,
+                    'endTime' => $endTimeString,
                     'originalError' => $e->getResponseData(),
                 ],
                 $e->getStatusCode(),
@@ -162,8 +167,8 @@ class MessageContentsClient
      * Get message contents metadata without downloading the actual content.
      * This only performs the first step of the download process to get the download URL.
      *
-     * @param string $startTime Start time in YYYY-MM-DDThh:mm:ssTZD format (will be URL encoded)
-     * @param string $endTime End time in YYYY-MM-DDThh:mm:ssTZD format (will be URL encoded)
+     * @param string|\Carbon\CarbonInterface $startTime Start time in YYYY-MM-DDThh:mm:ssTZD format or Carbon instance
+     * @param string|\Carbon\CarbonInterface $endTime End time in YYYY-MM-DDThh:mm:ssTZD format or Carbon instance
      * @param string|null $language CSV file language (ja_JP, ko_KR, zh_CN, zh_TW, en_US)
      * @param string|null $botMessageFilterType Bot message filter type (include, exclude, only)
      * @param int|null $domainId Domain ID (for group companies to get logs from another domain)
@@ -172,8 +177,8 @@ class MessageContentsClient
      * @throws \Sumihiro\LineWorksClient\Exceptions\ApiException
      */
     public function getDownloadUrlOnly(
-        string $startTime,
-        string $endTime,
+        string|CarbonInterface $startTime,
+        string|CarbonInterface $endTime,
         string $language = 'ja_JP',
         ?string $botMessageFilterType = null,
         ?int $domainId = null,
@@ -181,13 +186,17 @@ class MessageContentsClient
     ): string {
         $endpoint = "monitoring/message-contents/download";
         
+        // Convert Carbon instances to strings if needed
+        $startTimeString = $this->formatTimeParameter($startTime);
+        $endTimeString = $this->formatTimeParameter($endTime);
+        
         // Validate language parameter
         $this->validateLanguage($language);
         
         // Build query parameters with URL encoding for time parameters
         $query = [
-            'startTime' => $startTime,
-            'endTime' => $endTime,
+            'startTime' => $startTimeString,
+            'endTime' => $endTimeString,
             'language' => $language,
         ];
 
@@ -249,4 +258,19 @@ class MessageContentsClient
             );
         }
     }
+
+    /**
+     * Format time parameter.
+     *
+     * @param string|\Carbon\CarbonInterface $time
+     * @return string
+     */
+    protected function formatTimeParameter(string|CarbonInterface $time): string
+    {
+        if ($time instanceof CarbonInterface) {
+            return $time->toIso8601String();
+        }
+        return $time;
+    }
+
 } 
