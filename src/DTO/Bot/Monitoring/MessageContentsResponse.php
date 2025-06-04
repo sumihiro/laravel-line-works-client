@@ -161,6 +161,9 @@ class MessageContentsResponse extends BaseDTO
             return [];
         }
 
+        // Remove BOM if present (UTF-8 BOM: EF BB BF)
+        $csvContent = $this->removeBom($csvContent);
+
         // Create a temporary stream from CSV content
         $stream = fopen('php://memory', 'r+');
         if ($stream === false) {
@@ -217,6 +220,32 @@ class MessageContentsResponse extends BaseDTO
             // Close the stream
             fclose($stream);
         }
+    }
+
+    /**
+     * Remove BOM (Byte Order Mark) from the beginning of content.
+     *
+     * @param string $content
+     * @return string
+     */
+    protected function removeBom(string $content): string
+    {
+        // UTF-8 BOM: EF BB BF
+        if (substr($content, 0, 3) === "\xEF\xBB\xBF") {
+            return substr($content, 3);
+        }
+        
+        // UTF-16 BE BOM: FE FF
+        if (substr($content, 0, 2) === "\xFE\xFF") {
+            return substr($content, 2);
+        }
+        
+        // UTF-16 LE BOM: FF FE
+        if (substr($content, 0, 2) === "\xFF\xFE") {
+            return substr($content, 2);
+        }
+        
+        return $content;
     }
 
     /**

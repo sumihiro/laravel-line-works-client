@@ -351,4 +351,81 @@ class MessageContentsResponseTest extends TestCase
         $this->assertCount(1, $messages);
         $this->assertEquals('Hello', $messages[0]['message']);
     }
+
+    /** @test */
+    public function it_removes_utf8_bom_from_csv_content(): void
+    {
+        // Arrange - CSV content with UTF-8 BOM
+        $csvWithBom = "\xEF\xBB\xBF" . "日時,送信者,受信者,チャンネルID,トーク\n2025-05-30T18:24:53+09:00,[Bot]test,user@example.com,channel123,Hello BOM";
+        
+        $response = new MessageContentsResponse([
+            'downloadUrl' => 'https://example.com/download',
+            'content' => ['raw_response' => $csvWithBom]
+        ]);
+
+        // Act
+        $messages = $response->getMessages();
+
+        // Assert
+        $this->assertCount(1, $messages);
+        $this->assertEquals('Hello BOM', $messages[0]['message']);
+        $this->assertEquals('[Bot]test', $messages[0]['sender']);
+    }
+
+    /** @test */
+    public function it_removes_utf16_be_bom_from_csv_content(): void
+    {
+        // Arrange - CSV content with UTF-16 BE BOM
+        $csvWithBom = "\xFE\xFF" . "日時,送信者,受信者,チャンネルID,トーク\n2025-05-30T18:24:53+09:00,[Bot]test,user@example.com,channel123,Hello UTF16 BE";
+        
+        $response = new MessageContentsResponse([
+            'downloadUrl' => 'https://example.com/download',
+            'content' => ['raw_response' => $csvWithBom]
+        ]);
+
+        // Act
+        $messages = $response->getMessages();
+
+        // Assert
+        $this->assertCount(1, $messages);
+        $this->assertEquals('Hello UTF16 BE', $messages[0]['message']);
+    }
+
+    /** @test */
+    public function it_removes_utf16_le_bom_from_csv_content(): void
+    {
+        // Arrange - CSV content with UTF-16 LE BOM
+        $csvWithBom = "\xFF\xFE" . "日時,送信者,受信者,チャンネルID,トーク\n2025-05-30T18:24:53+09:00,[Bot]test,user@example.com,channel123,Hello UTF16 LE";
+        
+        $response = new MessageContentsResponse([
+            'downloadUrl' => 'https://example.com/download',
+            'content' => ['raw_response' => $csvWithBom]
+        ]);
+
+        // Act
+        $messages = $response->getMessages();
+
+        // Assert
+        $this->assertCount(1, $messages);
+        $this->assertEquals('Hello UTF16 LE', $messages[0]['message']);
+    }
+
+    /** @test */
+    public function it_handles_csv_without_bom_normally(): void
+    {
+        // Arrange - CSV content without BOM
+        $csvContent = "日時,送信者,受信者,チャンネルID,トーク\n2025-05-30T18:24:53+09:00,[Bot]test,user@example.com,channel123,No BOM";
+        
+        $response = new MessageContentsResponse([
+            'downloadUrl' => 'https://example.com/download',
+            'content' => ['raw_response' => $csvContent]
+        ]);
+
+        // Act
+        $messages = $response->getMessages();
+
+        // Assert
+        $this->assertCount(1, $messages);
+        $this->assertEquals('No BOM', $messages[0]['message']);
+    }
 } 
