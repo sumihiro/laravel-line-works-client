@@ -3,8 +3,10 @@
 namespace Sumihiro\LineWorksClient;
 
 use Illuminate\Contracts\Container\Container;
-use Sumihiro\LineWorksClient\Bot\BotClient;
+use Sumihiro\LineWorksClient\Contracts\Bot\BotClientFactoryInterface;
+use Sumihiro\LineWorksClient\Contracts\Bot\BotClientInterface;
 use Sumihiro\LineWorksClient\Exceptions\ConfigurationException;
+use Sumihiro\LineWorksClient\Factories\BotClientFactory;
 
 class LineWorksManager
 {
@@ -30,16 +32,25 @@ class LineWorksManager
     protected array $clients = [];
 
     /**
+     * The bot client factory instance.
+     *
+     * @var \Sumihiro\LineWorksClient\Contracts\Bot\BotClientFactoryInterface
+     */
+    protected BotClientFactoryInterface $botClientFactory;
+
+    /**
      * Create a new LINE WORKS manager instance.
      *
      * @param \Illuminate\Contracts\Container\Container $container
      * @param array<string, mixed> $config
+     * @param \Sumihiro\LineWorksClient\Contracts\Bot\BotClientFactoryInterface|null $botClientFactory
      * @return void
      */
-    public function __construct(Container $container, array $config)
+    public function __construct(Container $container, array $config, ?BotClientFactoryInterface $botClientFactory = null)
     {
         $this->container = $container;
         $this->config = $config;
+        $this->botClientFactory = $botClientFactory ?? new BotClientFactory();
     }
 
     /**
@@ -60,14 +71,14 @@ class LineWorksManager
      * Get a LINE WORKS bot client instance.
      *
      * @param string|null $name
-     * @return \Sumihiro\LineWorksClient\Bot\BotClient
+     * @return \Sumihiro\LineWorksClient\Contracts\Bot\BotClientInterface
      * @throws \Sumihiro\LineWorksClient\Exceptions\ConfigurationException
      */
-    public function botClient(?string $name = null): BotClient
+    public function botClient(?string $name = null): BotClientInterface
     {
         $client = $this->bot($name);
         
-        return new BotClient($client);
+        return $this->botClientFactory->create($client);
     }
 
     /**
@@ -140,6 +151,18 @@ class LineWorksManager
                 'enabled' => false,
             ],
         ];
+    }
+
+    /**
+     * Set the bot client factory.
+     * This method is primarily for testing purposes.
+     *
+     * @param \Sumihiro\LineWorksClient\Contracts\Bot\BotClientFactoryInterface $factory
+     * @return void
+     */
+    public function setBotClientFactory(BotClientFactoryInterface $factory): void
+    {
+        $this->botClientFactory = $factory;
     }
 
     /**

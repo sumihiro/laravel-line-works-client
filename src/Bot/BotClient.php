@@ -8,9 +8,16 @@ use Sumihiro\LineWorksClient\Bot\Management\BotManagementClient;
 use Sumihiro\LineWorksClient\Bot\Message\MessageClient;
 use Sumihiro\LineWorksClient\Bot\Monitoring\MessageContentsClient;
 use Sumihiro\LineWorksClient\Bot\RichMenu\RichMenuClient;
+use Sumihiro\LineWorksClient\Contracts\Bot\AttachmentClientInterface;
+use Sumihiro\LineWorksClient\Contracts\Bot\BotClientInterface;
+use Sumihiro\LineWorksClient\Contracts\Bot\BotManagementClientInterface;
+use Sumihiro\LineWorksClient\Contracts\Bot\ChannelClientInterface;
+use Sumihiro\LineWorksClient\Contracts\Bot\MessageClientInterface;
+use Sumihiro\LineWorksClient\Contracts\Bot\MessageContentsClientInterface;
+use Sumihiro\LineWorksClient\Contracts\Bot\RichMenuClientInterface;
 use Sumihiro\LineWorksClient\LineWorksClient;
 
-class BotClient
+class BotClient implements BotClientInterface
 {
     /**
      * The LINE WORKS client instance.
@@ -75,9 +82,9 @@ class BotClient
     /**
      * Get the channel client instance.
      *
-     * @return \Sumihiro\LineWorksClient\Bot\Channel\ChannelClient
+     * @return \Sumihiro\LineWorksClient\Contracts\Bot\ChannelClientInterface
      */
-    public function channel(): ChannelClient
+    public function channel(): ChannelClientInterface
     {
         if ($this->channelClient === null) {
             $this->channelClient = new ChannelClient($this->client);
@@ -89,9 +96,9 @@ class BotClient
     /**
      * Get the message client instance.
      *
-     * @return \Sumihiro\LineWorksClient\Bot\Message\MessageClient
+     * @return \Sumihiro\LineWorksClient\Contracts\Bot\MessageClientInterface
      */
-    public function message(): MessageClient
+    public function message(): MessageClientInterface
     {
         if ($this->messageClient === null) {
             $this->messageClient = new MessageClient($this->client);
@@ -103,9 +110,9 @@ class BotClient
     /**
      * Get the rich menu client instance.
      *
-     * @return \Sumihiro\LineWorksClient\Bot\RichMenu\RichMenuClient
+     * @return \Sumihiro\LineWorksClient\Contracts\Bot\RichMenuClientInterface
      */
-    public function richMenu(): RichMenuClient
+    public function richMenu(): RichMenuClientInterface
     {
         if ($this->richMenuClient === null) {
             $this->richMenuClient = new RichMenuClient($this->client);
@@ -117,9 +124,9 @@ class BotClient
     /**
      * Get the attachment client instance.
      *
-     * @return \Sumihiro\LineWorksClient\Bot\Attachment\AttachmentClient
+     * @return \Sumihiro\LineWorksClient\Contracts\Bot\AttachmentClientInterface
      */
-    public function attachment(): AttachmentClient
+    public function attachment(): AttachmentClientInterface
     {
         if ($this->attachmentClient === null) {
             $this->attachmentClient = new AttachmentClient($this->client);
@@ -131,9 +138,9 @@ class BotClient
     /**
      * Get the bot management client instance.
      *
-     * @return \Sumihiro\LineWorksClient\Bot\Management\BotManagementClient
+     * @return \Sumihiro\LineWorksClient\Contracts\Bot\BotManagementClientInterface
      */
-    public function management(): BotManagementClient
+    public function management(): BotManagementClientInterface
     {
         if ($this->botManagementClient === null) {
             $this->botManagementClient = new BotManagementClient($this->client);
@@ -145,9 +152,9 @@ class BotClient
     /**
      * Get the monitoring client instance.
      *
-     * @return \Sumihiro\LineWorksClient\Bot\Monitoring\MessageContentsClient
+     * @return \Sumihiro\LineWorksClient\Contracts\Bot\MessageContentsClientInterface
      */
-    public function monitoring(): MessageContentsClient
+    public function monitoring(): MessageContentsClientInterface
     {
         if ($this->monitoringClient === null) {
             $this->monitoringClient = new MessageContentsClient($this->client);

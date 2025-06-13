@@ -2,11 +2,12 @@
 
 namespace Sumihiro\LineWorksClient\Bot\Attachment;
 
+use Sumihiro\LineWorksClient\Contracts\Bot\AttachmentClientInterface;
 use Sumihiro\LineWorksClient\DTO\Bot\Attachment\CreateResponse;
 use Sumihiro\LineWorksClient\Exceptions\ApiException;
 use Sumihiro\LineWorksClient\LineWorksClient;
 
-class AttachmentClient
+class AttachmentClient implements AttachmentClientInterface
 {
     /**
      * The LINE WORKS client instance.

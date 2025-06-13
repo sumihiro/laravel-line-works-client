@@ -2,11 +2,12 @@
 
 namespace Sumihiro\LineWorksClient\Bot\Management;
 
+use Sumihiro\LineWorksClient\Contracts\Bot\BotManagementClientInterface;
 use Sumihiro\LineWorksClient\DTO\Bot\BotInfoResponse;
 use Sumihiro\LineWorksClient\Exceptions\ApiException;
 use Sumihiro\LineWorksClient\LineWorksClient;
 
-class BotManagementClient
+class BotManagementClient implements BotManagementClientInterface
 {
     /**
      * The LINE WORKS client instance.

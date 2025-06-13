@@ -3,11 +3,12 @@
 namespace Sumihiro\LineWorksClient\Bot\Monitoring;
 
 use Carbon\CarbonInterface;
+use Sumihiro\LineWorksClient\Contracts\Bot\MessageContentsClientInterface;
 use Sumihiro\LineWorksClient\DTO\Bot\Monitoring\MessageContentsResponse;
 use Sumihiro\LineWorksClient\Exceptions\ApiException;
 use Sumihiro\LineWorksClient\LineWorksClient;
 
-class MessageContentsClient
+class MessageContentsClient implements MessageContentsClientInterface
 {
     /**
      * The LINE WORKS client instance.

@@ -2,6 +2,7 @@
 
 namespace Sumihiro\LineWorksClient\Bot\RichMenu;
 
+use Sumihiro\LineWorksClient\Contracts\Bot\RichMenuClientInterface;
 use Sumihiro\LineWorksClient\DTO\Bot\RichMenu\CreateResponse;
 use Sumihiro\LineWorksClient\DTO\Bot\RichMenu\DefaultMenuResponse;
 use Sumihiro\LineWorksClient\DTO\Bot\RichMenu\DeleteResponse;
@@ -13,7 +14,7 @@ use Sumihiro\LineWorksClient\DTO\Bot\RichMenu\UserMenuResponse;
 use Sumihiro\LineWorksClient\Exceptions\ApiException;
 use Sumihiro\LineWorksClient\LineWorksClient;
 
-class RichMenuClient
+class RichMenuClient implements RichMenuClientInterface
 {
     /**
      * The LINE WORKS client instance.

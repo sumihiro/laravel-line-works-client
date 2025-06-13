@@ -2,11 +2,12 @@
 
 namespace Sumihiro\LineWorksClient\Bot\Message;
 
+use Sumihiro\LineWorksClient\Contracts\Bot\MessageClientInterface;
 use Sumihiro\LineWorksClient\DTO\Bot\Message\MessageResponse;
 use Sumihiro\LineWorksClient\Exceptions\ApiException;
 use Sumihiro\LineWorksClient\LineWorksClient;
 
-class MessageClient
+class MessageClient implements MessageClientInterface
 {
     /**
      * The LINE WORKS client instance.

@@ -3,7 +3,9 @@
 namespace Sumihiro\LineWorksClient;
 
 use Illuminate\Support\ServiceProvider;
+use Sumihiro\LineWorksClient\Contracts\Bot\BotClientFactoryInterface;
 use Sumihiro\LineWorksClient\Facades\LineWorks;
+use Sumihiro\LineWorksClient\Factories\BotClientFactory;
 
 class LineWorksServiceProvider extends ServiceProvider
 {
@@ -18,8 +20,12 @@ class LineWorksServiceProvider extends ServiceProvider
             __DIR__ . '/../config/lineworks.php', 'lineworks'
         );
 
+        $this->app->bind(BotClientFactoryInterface::class, BotClientFactory::class);
+
         $this->app->singleton('lineworks', function ($app) {
-            return new LineWorksManager($app, $app['config']['lineworks']);
+            $config = $app['config']['lineworks'];
+            $factory = $app->make(BotClientFactoryInterface::class);
+            return new LineWorksManager($app, $config, $factory);
         });
     }
 

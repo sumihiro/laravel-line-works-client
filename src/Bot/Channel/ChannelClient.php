@@ -2,6 +2,7 @@
 
 namespace Sumihiro\LineWorksClient\Bot\Channel;
 
+use Sumihiro\LineWorksClient\Contracts\Bot\ChannelClientInterface;
 use Sumihiro\LineWorksClient\DTO\Bot\Channel\CreateChannelResponse;
 use Sumihiro\LineWorksClient\DTO\Bot\Channel\InfoResponse;
 use Sumihiro\LineWorksClient\DTO\Bot\Channel\MembersResponse;
@@ -9,7 +10,7 @@ use Sumihiro\LineWorksClient\DTO\Bot\Message\MessageResponse;
 use Sumihiro\LineWorksClient\Exceptions\ApiException;
 use Sumihiro\LineWorksClient\LineWorksClient;
 
-class ChannelClient
+class ChannelClient implements ChannelClientInterface
 {
     /**
      * The LINE WORKS client instance.
