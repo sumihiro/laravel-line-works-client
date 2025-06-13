@@ -16,7 +16,7 @@ LINE WORKS APIをLaravelから簡単に利用するためのクライアント�
 Composerを使用してインストールできます：
 
 ```bash
-composer require sumihiro/line-works-client
+composer require sumihiro/laravel-line-works-client
 ```
 
 ## 設定
@@ -130,7 +130,7 @@ $botConfig = [
 
 // グローバル設定
 $globalConfig = [
-    'api_base_url' => 'https://www.worksapis.com/v1.0',
+    'api_base_url' => 'https://www.worksapis.com/v1.0/',
     'cache' => [
         'enabled' => false,
     ],
@@ -178,7 +178,7 @@ $config = [
 
 // グローバル設定
 $globalConfig = [
-    'api_base_url' => 'https://www.worksapis.com/v1.0',
+    'api_base_url' => 'https://www.worksapis.com/v1.0/',
     'cache' => [
         'enabled' => false,
     ],
